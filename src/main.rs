@@ -16,13 +16,13 @@ fn main() -> color_eyre::Result<()> {
 
     match env::args().nth(1) {
         Some(pattern) => {
-            for basename in executables.iter().map(|f| f.basename()) {
+            for basename in executables.iter().map(Basename::basename) {
                 let basename_lowercase = basename.to_lowercase();
                 let matches: Vec<&str> = basename_lowercase
                     .matches(pattern.to_lowercase().as_str())
                     .collect();
                 if !matches.is_empty() {
-                    println!("{}", basename);
+                    println!("{basename}");
                 }
             }
         }
@@ -37,7 +37,7 @@ fn find_executables(directory: fs::ReadDir) -> Vec<fs::DirEntry> {
     let mut accumulator = vec![];
     directory.flatten().for_each(|file| {
         if file.is_executable() {
-            accumulator.push(file)
+            accumulator.push(file);
         }
     });
     accumulator
@@ -57,10 +57,8 @@ trait CheckExecutePermission {
 
 impl CheckExecutePermission for fs::DirEntry {
     fn is_executable(&self) -> bool {
-        match self.metadata() {
-            Ok(md) => md.permissions().mode() & 0o111 != 0,
-            Err(_) => false,
-        }
+        self.metadata()
+            .map_or(false, |md| md.permissions().mode() & 0o111 != 0)
     }
 }
 
