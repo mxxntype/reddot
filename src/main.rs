@@ -1,9 +1,14 @@
 use std::os::unix::prelude::PermissionsExt;
 use std::{env, fs};
 
+mod cli;
+use clap::Parser;
+use cli::Args;
+
 fn main() -> color_eyre::Result<()> {
     color_eyre::install()?;
     let path = env::var("PATH")?;
+    let args = Args::parse();
 
     let mut executable_files: Vec<fs::DirEntry> = vec![];
     path.split(':').for_each(|dir| {
@@ -14,23 +19,23 @@ fn main() -> color_eyre::Result<()> {
         }
     });
 
-    if let Some(pattern) = env::args().nth(1) {
-        executable_files = executable_files
-            .into_iter()
-            .filter_map(|file: fs::DirEntry| {
-                let filename = file
-                    .file_name()
-                    .to_string_lossy()
-                    .to_string()
-                    .to_lowercase();
-                if filename.contains(&pattern.to_lowercase()) {
-                    Some(file)
-                } else {
-                    None
-                }
-            })
-            .collect();
-    }
+    executable_files = executable_files
+        .into_iter()
+        .filter_map(|file: fs::DirEntry| {
+            let filename = file
+                .file_name()
+                .to_string_lossy()
+                .to_string()
+                .to_lowercase();
+            if filename.contains(&args.pattern.to_lowercase()) {
+                Some(file)
+            } else {
+                None
+            }
+        })
+        .collect();
+
+    executable_files.truncate(args.exe_count);
 
     print_filenames_json(&executable_files);
 
