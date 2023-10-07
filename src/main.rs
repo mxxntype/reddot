@@ -10,14 +10,11 @@ fn main() -> color_eyre::Result<()> {
     let path = env::var("PATH")?;
     let args = Args::parse();
 
-    let mut executable_files: Vec<fs::DirEntry> = vec![];
-    path.split(':').for_each(|dir| {
-        if let Ok(files) = fs::read_dir(dir) {
-            for exe in find_executables(files) {
-                executable_files.push(exe);
-            }
-        }
-    });
+    let mut executable_files: Vec<fs::DirEntry> = path
+        .split(':')
+        .filter_map(|dir| fs::read_dir(dir).ok())
+        .flat_map(find_executables)
+        .collect();
 
     executable_files.retain(|file: &fs::DirEntry| {
         file.file_name()
@@ -36,13 +33,10 @@ fn main() -> color_eyre::Result<()> {
 
 /// Finds files that can be executed by any user
 fn find_executables(directory: fs::ReadDir) -> Vec<fs::DirEntry> {
-    let mut accumulator = vec![];
-    directory.flatten().for_each(|file| {
-        if file.is_executable() {
-            accumulator.push(file);
-        }
-    });
-    accumulator
+    directory
+        .flatten()
+        .filter(ExecutePermission::is_executable)
+        .collect()
 }
 
 /// Prints the files' basenames as a JSON array
@@ -55,12 +49,12 @@ fn print_filenames_json(files: &[fs::DirEntry]) {
     println!("{filenames_json}");
 }
 
-trait CheckExecutePermission {
+trait ExecutePermission {
     /// Returns `true` if the file is executable, `false` otherwise
     fn is_executable(&self) -> bool;
 }
 
-impl CheckExecutePermission for fs::DirEntry {
+impl ExecutePermission for fs::DirEntry {
     fn is_executable(&self) -> bool {
         self.metadata()
             .map_or(false, |md| md.permissions().mode() & 0o111 != 0)
