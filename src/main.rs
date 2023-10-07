@@ -19,21 +19,13 @@ fn main() -> color_eyre::Result<()> {
         }
     });
 
-    executable_files = executable_files
-        .into_iter()
-        .filter_map(|file: fs::DirEntry| {
-            let filename = file
-                .file_name()
-                .to_string_lossy()
-                .to_string()
-                .to_lowercase();
-            if filename.contains(&args.pattern.to_lowercase()) {
-                Some(file)
-            } else {
-                None
-            }
-        })
-        .collect();
+    executable_files.retain(|file: &fs::DirEntry| {
+        file.file_name()
+            .to_string_lossy()
+            .to_string()
+            .to_lowercase()
+            .contains(&args.pattern.to_lowercase())
+    });
 
     executable_files.truncate(args.exe_count);
 
