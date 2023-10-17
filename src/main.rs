@@ -17,11 +17,12 @@ fn main() -> color_eyre::Result<()> {
         .collect();
 
     executable_files.retain(|file: &fs::DirEntry| {
-        file.file_name()
+        let filename = file
+            .file_name()
             .to_string_lossy()
             .to_string()
-            .to_lowercase()
-            .contains(&args.pattern.to_lowercase())
+            .to_lowercase();
+        filename.contains(&args.pattern.to_lowercase()) && !filename.contains('.')
     });
 
     executable_files.truncate(args.exe_count);
