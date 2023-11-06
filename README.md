@@ -3,12 +3,11 @@ A tiny rust tool meant to be called from within scripts and widgets.
 
 #### Usage:
 ```shell
-reddot --pattern <PATTERN> --exe-count <EXE_COUNT>
+reddot [OPTIONS] <PATTERN>
 ```
 
 #### Options:
-- `-p`, `--pattern <PATTERN>`      Pattern by which the executables will be filtered
-- `-e`, `--exe-count <EXE_COUNT>`  Maximum count of executables in output
+- `-m`, `--max-files <MAX_FILES>`  Maximum count of executables in output
 - `-h`, `--help`                   Print help
 
 ## Nix
