@@ -17,11 +17,7 @@ fn main() -> color_eyre::Result<()> {
         .collect();
 
     executable_files.retain(|file: &fs::DirEntry| {
-        let filename = file
-            .file_name()
-            .to_string_lossy()
-            .to_string()
-            .to_lowercase();
+        let filename = file.file_name().to_string_lossy().to_lowercase();
         filename.contains(&args.pattern.to_lowercase()) && !filename.contains('.')
     });
 
