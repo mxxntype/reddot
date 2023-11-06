@@ -18,10 +18,7 @@ fn main() -> color_eyre::Result<()> {
 
     executable_files.retain(|file: &fs::DirEntry| {
         let filename = file.file_name();
-        let is_hidden = filename
-            .to_str()
-            .map(|s| s.starts_with('.'))
-            .unwrap_or(false);
+        let is_hidden = filename.to_str().is_some_and(|s| s.starts_with('.'));
         let matches_pattern = filename
             .to_string_lossy()
             .to_lowercase()
