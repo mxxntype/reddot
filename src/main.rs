@@ -28,7 +28,7 @@ fn main() -> color_eyre::Result<()> {
 
     executable_files.truncate(config.max_files);
 
-    print_filenames_json(&executable_files);
+    print_filenames_json(&executable_files, &config);
 
     Ok(())
 }
@@ -42,11 +42,14 @@ fn find_executables(directory: fs::ReadDir) -> Vec<fs::DirEntry> {
 }
 
 /// Prints the files' basenames as a JSON array
-fn print_filenames_json(files: &[fs::DirEntry]) {
-    let filenames: Vec<String> = files
+fn print_filenames_json(files: &[fs::DirEntry], config: &Config) {
+    let mut filenames: Vec<String> = files
         .iter()
         .map(|f| f.file_name().to_string_lossy().to_string())
         .collect();
+    if config.padding {
+        (filenames.len()..config.max_files).for_each(|_| filenames.push(String::default()));
+    }
     let filenames_json = serde_json::to_string(&filenames).unwrap();
     println!("{filenames_json}");
 }
